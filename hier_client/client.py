@@ -1,7 +1,7 @@
 import os
 import sys
 import argparse
-import getpass
+# import getpass
 import pkg_resources
 
 import keyring
@@ -23,7 +23,11 @@ class Client:
 
     def initalize(self):
         user_email = input('Hier email: ')
-        password = getpass.getpass('Hier token: ')
+        #password = getpass.getpass('Hier token: ')
+        print('\n\nNOTE: '
+              'Your password will be visible when you type/paste it. ',
+              'But all credentials are stored securely using keyring.')
+        password = input('Hier token: ')
         keyring.set_password('Hier', 'user_email', user_email)
         keyring.set_password("Hier", user_email, password)
         print('Credentials saved.')
