@@ -11,7 +11,7 @@ import requests
 class Client:
     def __init__(self):
         self.base_url = "https://honorable-diligent-serval.anvil.app/_/api/"
-        self.base_url = "https://joyful-shadowy-poet.anvil.app/_/api/"
+        # self.base_url = "https://joyful-shadowy-poet.anvil.app/_/api/"
         self.user_email = keyring.get_password('Hier', 'user_email')
         self.password = None
         self.auth = None
