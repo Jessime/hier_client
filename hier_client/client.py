@@ -11,13 +11,15 @@ import requests
 class Client:
     def __init__(self):
         self.base_url = "https://honorable-diligent-serval.anvil.app/_/api/"
-        # self.base_url = "https://joyful-shadowy-poet.anvil.app/_/api/"
         self.user_email = keyring.get_password('Hier', 'user_email')
         self.password = None
         self.auth = None
         if self.user_email is not None:
             self.password = keyring.get_password('Hier', self.user_email)
             self.auth = (self.user_email, self.password)
+            if self.password is None:
+                print('User email has been stored, but password has not. '
+                      'Please regenerate token and rerun `hier init`.')
 
     def initalize(self):
         user_email = input('Hier email: ')
@@ -25,6 +27,12 @@ class Client:
         keyring.set_password('Hier', 'user_email', user_email)
         keyring.set_password("Hier", user_email, password)
         print('Credentials saved.')
+
+    def user_pw_exist(self):
+        exists = self.user_email is not None and self.password is not None
+        if not exists:
+            print('No user saved. Please run `hier init` first.')
+        return exists
 
     def count_users(self):
         url = self.base_url + 'count_users'
@@ -77,19 +85,23 @@ def run():
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit()
+    client = Client()
     if args.command == 'init':
-        Client().initalize()
-    elif args.command == 'count_users':
-        print(Client().count_users())
+        client.initalize()
+        return  # Early exit before verifying username exists.
+    if not client.user_pw_exist():
+        return
+    if args.command == 'count_users':
+        print(client.count_users())
     elif args.command == 'notes_by_users':
-        for user, notes in Client().notes_by_users():
+        for user, notes in client.notes_by_users():
             print(f"{user}: {notes}")
     elif args.command == 'write':
-        print(Client().write(args.content, args.force, args.append))
+        print(client.write(args.content, args.force, args.append))
     elif args.command == 'read':
-        print(Client().read())
+        print(client.read())
     elif args.command == 'test':
-        print(Client().test())
+        print(client.test())
 
 if __name__ == "__main__":
     run()
