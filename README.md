@@ -1,6 +1,6 @@
 # hier_client
 
-Python library for using [Hier](https://honorable-diligent-serval.anvil.app/) from the CLI.
+A Python library for using [Hier](https://honorable-diligent-serval.anvil.app/) from the CLI.
 
 ## Install
 
@@ -40,8 +40,18 @@ If you've already made notes for today, no worries, just append to them:
 $ hier write --append "Learned about the Hier client."
 ```
 
-Or, if you just want to see what you've already written:
+Or to start a note over from scratch, use `--force` instead.
+
+```
+$ hier write --force "Wrote a fresh note."
+```
+
+Finally, if you just want to see what you've already written:
 
 ```
 $ hier read
 ```
+
+## Bugs or Suggestions
+
+Feel free to leave an [Issue](https://github.com/Jessime/hier_client/issues) if anything comes up!
