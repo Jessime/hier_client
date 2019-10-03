@@ -1,29 +1,32 @@
 import os
 import sys
 import argparse
-# import getpass
-import pkg_resources
 
 import keyring
-import requests
+import anvil.server
 
+from datetime import datetime
+from functools import partial
 
 class Client:
     def __init__(self):
-        self.base_url = "https://honorable-diligent-serval.anvil.app/_/api/"
+        app_token = 'TK7FLRPXCNT5TQI44VM4KNCS-S2TS7IPRJHFHAPGR-CLIENT'
         self.user_email = keyring.get_password('Hier', 'user_email')
-        self.password = None
-        self.auth = None
         if self.user_email is not None:
             self.password = keyring.get_password('Hier', self.user_email)
-            self.auth = (self.user_email, self.password)
             if self.password is None:
                 print('User email has been stored, but password has not. '
                       'Please regenerate token and rerun `hier init`.')
+            else:
+                anvil.server.connect(app_token, quiet=True)
+                self.call = partial(
+                    anvil.server.call,
+                    user_email=self.user_email,
+                    password=self.password
+                )
 
     def initalize(self):
         user_email = input('Hier email: ')
-        #password = getpass.getpass('Hier token: ')
         print('\n\nNOTE: '
               'Your password will be visible when you type/paste it. ',
               'But all credentials are stored securely using keyring.')
@@ -39,35 +42,22 @@ class Client:
         return exists
 
     def count_users(self):
-        url = self.base_url + 'count_users'
-        response_text = requests.get(url, auth=self.auth).text
-        return response_text
+        return self.call('count_users')
 
     def notes_by_users(self):
-        url = self.base_url + 'notes_by_users'
-        response_json = requests.get(url, auth=self.auth).json()
-        return response_json
+        return self.call('notes_by_users')
 
     def write(self, content, force=False, append=False):
-        url = self.base_url + 'write'
-        json = {'content': content, 'force': force, 'append': append}
-        response_text = requests.post(url, auth=self.auth, json=json).text
-        return response_text
+        return self.call('write', content, force, append, datetime.now())
 
     def read(self):
-        url = self.base_url + 'read'
-        response_text = requests.get(url, auth=self.auth).text
-        return response_text
+        return self.call('read', datetime.now())
 
     def test(self):
-        url = self.base_url + 'test'
-        data = {'append': True}
-        response_text = requests.post(url, auth=self.auth, json=data).text
-        return response_text
+        return self.call('test', datetime.now())
+
 
 def run():
-    #formatter = argparse.ArgumentDefaultsHelpFormatter
-    #parser = argparse.ArgumentParser(usage=USAGE, formatter_class=formatter)
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='', dest='command')
     parser_init = subparsers.add_parser('init', help='Initial setup.')

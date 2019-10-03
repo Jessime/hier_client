@@ -12,7 +12,7 @@ with open(version, "r", encoding="utf-8") as f:
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-requirements = ["requests", 'keyring']
+requirements = ["anvil-uplink", 'keyring']
 setup(
     name=about["__title__"],
     version=about["__version__"],
