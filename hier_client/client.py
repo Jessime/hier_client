@@ -8,6 +8,8 @@ import anvil.server
 from datetime import datetime
 from functools import partial
 
+from hier_client.__version__ import __version__
+
 class Client:
     def __init__(self):
         app_token = 'TK7FLRPXCNT5TQI44VM4KNCS-S2TS7IPRJHFHAPGR-CLIENT'
@@ -47,6 +49,9 @@ class Client:
     def notes_by_users(self):
         return self.call('notes_by_users')
 
+    def migrate_user_settings(self):
+        return self.call('migrate_user_settings')
+
     def write(self, content, force=False, append=False):
         return self.call('write', content, force, append, datetime.now())
 
@@ -64,11 +69,13 @@ def run():
 
     # Admin
     parser_count_users = subparsers.add_parser('count_users', help='Count number of users.')
-    parser_count_users = subparsers.add_parser('notes_by_users', help='Count number of notes, grouped by users.')
-    parser_count_users = subparsers.add_parser('test', help='Scratch endpoint.')
+    parser_notes_by_users = subparsers.add_parser('notes_by_users', help='Count number of notes, grouped by users.')
+    parser_test = subparsers.add_parser('test', help='Scratch endpoint.')
+    parser_migrate_user_settings = subparsers.add_parser('migrate_user_settings', help='Refresh Users["settings"].')
 
     # Users
-    parser_write = subparsers.add_parser('read', help='Read note(s).')
+    parser_version = subparsers.add_parser('version', help='See what version of the client is installed.')
+    parser_read = subparsers.add_parser('read', help='Read note(s).')
     parser_write = subparsers.add_parser('write', help='Write full note.')
     parser_write.add_argument('content', help='Note to save.')
     parser_write.add_argument('--force', '-f', action='store_true', help='Delete existing note. Replace with new content.')
@@ -90,12 +97,16 @@ def run():
     elif args.command == 'notes_by_users':
         for user, notes in client.notes_by_users():
             print(f"{user}: {notes}")
+    if args.command == 'migrate_user_settings':
+        print(client.migrate_user_settings())
     elif args.command == 'write':
         print(client.write(args.content, args.force, args.append))
     elif args.command == 'read':
         print(client.read())
     elif args.command == 'test':
         print(client.test())
+    elif args.command == 'version':
+        print(__version__)
 
 if __name__ == "__main__":
     run()
