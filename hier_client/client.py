@@ -11,8 +11,10 @@ from functools import partial
 from hier_client.__version__ import __version__
 
 class Client:
-    def __init__(self):
+    def __init__(self, dev_env=False):
         app_token = 'TK7FLRPXCNT5TQI44VM4KNCS-S2TS7IPRJHFHAPGR-CLIENT'
+        if dev_env:
+            app_token = 'JOX4D7EY52U45CSJD43DZT3U-P3WW7DFIISNFGUZK-CLIENT'
         self.user_email = keyring.get_password('Hier', 'user_email')
         if self.user_email is not None:
             self.password = keyring.get_password('Hier', self.user_email)
@@ -20,6 +22,7 @@ class Client:
                 print('User email has been stored, but password has not. '
                       'Please regenerate token and rerun `hier init`.')
             else:
+                print(app_token)
                 anvil.server.connect(app_token, quiet=True)
                 self.call = partial(
                     anvil.server.call,
@@ -43,6 +46,9 @@ class Client:
             print('No user saved. Please run `hier init` first.')
         return exists
 
+    def dev(self):
+        return self.call('dev', datetime.now())
+
     def count_users(self):
         return self.call('count_users')
 
@@ -61,16 +67,18 @@ class Client:
     def test(self):
         return self.call('test', datetime.now())
 
-
 def run():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='', dest='command')
     parser_init = subparsers.add_parser('init', help='Initial setup.')
 
     # Admin
+    parser_dev2 = subparsers.add_parser('dev2', help='Write full note.')
+    parser_dev2.add_argument('--dev_env', '-d', action='store_true', help='Delete existing note. Replace with new content.')
+
     parser_count_users = subparsers.add_parser('count_users', help='Count number of users.')
     parser_notes_by_users = subparsers.add_parser('notes_by_users', help='Count number of notes, grouped by users.')
-    parser_test = subparsers.add_parser('test', help='Scratch endpoint.')
+    parser_test = subparsers.add_parser('dev', help='Scratch endpoint.')
     parser_migrate_user_settings = subparsers.add_parser('migrate_user_settings', help='Refresh Users["settings"].')
 
     # Users
@@ -86,18 +94,23 @@ def run():
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit()
-    client = Client()
+
+    allowed_args = set(('dev_env',))
+    client_init_args = {k:v for k,v in vars(args).items() if k in allowed_args} # shrug
+    client = Client(client_init_args)
     if args.command == 'init':
         client.initalize()
         return  # Early exit before verifying username exists.
     if not client.user_pw_exist():
         return
-    if args.command == 'count_users':
+    elif args.command == 'dev2':
+        print(client.dev())
+    elif args.command == 'count_users':
         print(client.count_users())
     elif args.command == 'notes_by_users':
         for user, notes in client.notes_by_users():
             print(f"{user}: {notes}")
-    if args.command == 'migrate_user_settings':
+    elif args.command == 'migrate_user_settings':
         print(client.migrate_user_settings())
     elif args.command == 'write':
         print(client.write(args.content, args.force, args.append))
